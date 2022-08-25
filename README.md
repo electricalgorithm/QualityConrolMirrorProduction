@@ -1,1 +1,1 @@
-# RectangularObjectDetector
+# Rectangular Detection

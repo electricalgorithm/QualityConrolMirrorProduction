@@ -3,6 +3,10 @@ import numpy
 
 
 class Debug:
+    """
+    This class implements a debugging feature to create log files and
+    output informative lines into the console.
+    """
     def __init__(self, file_location: str):
         try:
             self.log_file = open(file_location, "w", encoding="utf-8")
@@ -17,23 +21,49 @@ class Debug:
         self.debug_level = DebugLevels()
         self.debug_level_names = ["INFO", "ERROR", "RESULT"]
 
-    def _save_and_return_message_(self, debug_level: int, message: str):
+    def _save_and_return_message_(self, debug_level: int, message: str) -> str:
+        """
+        This function saves a log into the log file and outputs to console.
+        :param debug_level: A debug level indicator as integer.
+        :param message:
+        :return: log as string
+        """
         log = f"[{self.debug_level_names[debug_level]}] {message}\n"
         self.log_file.write(log)
+        print(log)
         return log
 
-    def info(self, message):
+    def info(self, message: str) -> str:
+        """
+        Creates a information output.
+        :param message: The informative message description.
+        :return: Log text as string.
+        """
         return self._save_and_return_message_(self.debug_level.INFO, message)
 
-    def error(self, message):
+    def error(self, message: str) -> str:
+        """
+        Creates a error-level output.
+        :param message: The informative message description.
+        :return: Log text as string.
+        """
         return self._save_and_return_message_(self.debug_level.ERROR, message)
 
-    def result(self, message):
+    def result(self, message: str) -> str:
+        """
+        Creates a result output.
+        :param message: The informative message description.
+        :return: Log text as string.
+        """
         return self._save_and_return_message_(self.debug_level.ERROR, message)
 
 
-class WindowDetection:
-    def __init__(self, image_file: numpy.ndarray, log_file_location: str = "logs.txt") -> None:
+class RectangularDetection:
+    """
+    This class implements the main algorithm which finds the rectangle shaped
+    object in a photo and return its top view,
+    """
+    def __init__(self, image_file: numpy.ndarray, log_file_location: str = "logs.txt"):
         self.image_uploaded = image_file
         self.debug = Debug(log_file_location)
 
@@ -41,39 +71,49 @@ class WindowDetection:
         self.corners_by_contour = []
         self.corners_by_harris = []
         self.end_image = None
+        self.is_algorithm_finished = False
 
-    def run(self):
+    def run(self) -> None:
+        """
+        It runs the algorithm.
+        :return: None
+        """
         self.end_image = self.apply_binarization(self.image_uploaded)
         self.steps.append(self.end_image)
         self.save_image(self.end_image, "result0.png")
 
-        # self.end_image = self.apply_gaussian_filter(self.end_image)
-        # self.steps.append(self.end_image)
-        # self.save_image(self.end_image, "result1.png")
-
-        kernel_size = 25
-        element = cv2.getStructuringElement(cv2.MORPH_RECT,
-                                            (2 * kernel_size + 1, 2 * kernel_size + 1),
-                                            (kernel_size, kernel_size))
-        self.end_image = cv2.erode(self.end_image, element)
+        self.end_image = self.apply_morphological_operations(self.end_image)
+        self.steps.append(self.end_image)
         self.save_image(self.end_image, "result1.png")
-
-        self.end_image = cv2.dilate(self.end_image, element)
-        self.save_image(self.end_image, "result2.png")
 
         self.corners_by_contour = self.apply_contour_find(self.end_image)
         self.corners_by_harris = self.apply_harris_corner_detection(self.end_image)
 
     def save_image(self, image: numpy.ndarray, file_location: str) -> None:
+        """
+        Saves the given numpy.ndarray as a image to the file system.
+        :param image: Image as numpy.ndarray
+        :param file_location: A file location to save image as string.
+        :return: None
+        """
         self.debug.info("save_image(): Function started.")
         cv2.imwrite(file_location, image)
         self.debug.result(f"Image is saved to {file_location}.")
         self.debug.info("save_image(): Function ended.")
 
+    def save_all_steps(self) -> None:
+        """
+        The function saves all the steps as PNG.
+        :return: None
+        """
+        step_index = 1
+        for step in self.steps:
+            self.save_image(step, f"step-{step_index}.png")
+            step_index += 1
+
     def apply_binarization(self, image: numpy.ndarray) -> numpy.ndarray:
         """
-        The function gets an image input, and apply Otsu's Method
-        to find its binary representation.
+        The function gets an image input, and apply Otsu's Method to find its binary representation.
         :param image: Original 3-channel image to perform Otsu's method.
         :return: The binary image as a numpy.ndarray.
         """
@@ -84,11 +124,26 @@ class WindowDetection:
         self.debug.info("make_binary_image(): Function ended.")
         return binary_image
 
+    def apply_morphological_operations(self, image: numpy.ndarray, kernel_size: int = 25):
+        """
+        The function applies closing into the image with very-big kernel sizes.
+        :param image: Binary image to perform method.
+        :param kernel_size: Defaults to 25.
+        :return: A binary image as numpy.ndarray.
+        """
+        self.debug.info("apply_morphological_operations(): Function started.")
+        element = cv2.getStructuringElement(cv2.MORPH_RECT,
+                                            (2 * kernel_size + 1, 2 * kernel_size + 1),
+                                            (kernel_size, kernel_size))
+        image_to_return = cv2.erode(image, element)
+        image_to_return = cv2.dilate(image_to_return, element)
+        self.debug.info("apply_morphological_operations(): Function ended.")
+        return image_to_return
+
     def apply_gaussian_filter(self, image: numpy.ndarray, window_size=51, gaussian_sigma=5) -> numpy.ndarray:
         """
-        Function returns the cv2 Image instance that
-        has Gaussian blur with predefined window size
-        and gaussian sigma ratio.
+        Function returns the cv2 Image instance that has Gaussian blur with predefined window size and gaussian
+        sigma ratio.
         :param image: Original image to perform blur onto.
         :param window_size: Default is 5.
         :param gaussian_sigma: Default is 5.
@@ -100,6 +155,12 @@ class WindowDetection:
         return blurred_image
 
     def apply_contour_find(self, image: numpy.ndarray):
+        """
+        This method firstly finds the contour of each object in the image, select the biggest one, and try to
+        find a polygon within the contour. It returns the corners of the polygon.
+        :param image: Binary image to search for contour.
+        :return: A list that includes corner coordinates for the biggest blob.
+        """
         self.debug.info("apply_contour_find(): Function started.")
         _, thresh = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -119,6 +180,11 @@ class WindowDetection:
         return approx
 
     def apply_harris_corner_detection(self, image: numpy.ndarray):
+        """
+        This function applies the Harris Corner detection algorithm and removes the redundant near-by pixels.
+        :param image: The binary image to look for corners.
+        :return: A list that includes corner coordinates.
+        """
         self.debug.info("apply_harris_corner_detection(): Function started.")
         corners = []
 
@@ -157,5 +223,5 @@ class WindowDetection:
 # Main function
 if __name__ == "__main__":
     image_to_test = cv2.imread("reference.jpg")
-    window_detection = WindowDetection(image_to_test)
-    window_detection.run()
+    detector = RectangularDetection(image_to_test)
+    detector.run()
