@@ -55,7 +55,7 @@ class Debug:
         :param message: The informative message description.
         :return: Log text as string.
         """
-        return self._save_and_return_message_(self.debug_level.ERROR, message)
+        return self._save_and_return_message_(self.debug_level.RESULT, message)
 
 
 class RectangularDetection:
@@ -68,8 +68,7 @@ class RectangularDetection:
         self.debug = Debug(log_file_location)
 
         self.steps = []
-        self.corners_by_contour = []
-        self.corners_by_harris = []
+        self.corners = []
         self.end_image = None
         self.is_algorithm_finished = False
 
@@ -78,16 +77,25 @@ class RectangularDetection:
         It runs the algorithm.
         :return: None
         """
+        # Binarization
         self.end_image = self.apply_binarization(self.image_uploaded)
         self.steps.append(self.end_image)
-        self.save_image(self.end_image, "result0.png")
 
+        # Closing
         self.end_image = self.apply_morphological_operations(self.end_image)
         self.steps.append(self.end_image)
-        self.save_image(self.end_image, "result1.png")
 
-        self.corners_by_contour = self.apply_contour_find(self.end_image)
-        self.corners_by_harris = self.apply_harris_corner_detection(self.end_image)
+        # Corner Finding
+        corners_by_contour = self.apply_contour_find(self.end_image)
+        corners_by_harris = self.apply_harris_corner_detection(self.end_image)
+        self.corners = self.validate_corners(corners_by_harris, corners_by_contour)
+        self.corners = self.order_corners(self.corners)
+
+        # Transformation
+        self.end_image = self.apply_warp_transformation(self.image_uploaded, self.corners, (800, 600))
+        self.steps.append(self.end_image)
+
+        self.save_all_steps()
 
     def save_image(self, image: numpy.ndarray, file_location: str) -> None:
         """
@@ -219,9 +227,53 @@ class RectangularDetection:
         self.debug.info("apply_harris_corner_detection(): Function ended.")
         return minimum_corners
 
+    # @TODO: Implement this method and return the average corners.
+    def validate_corners(self, corners_by_harris: list, corners_by_contour: list) -> list:
+        self.debug.info("validate_corners(): Function started.")
+        self.debug.error("NOT IMPLEMENTED!")
+        self.debug.info("validate_corners(): Function ended.")
+        return corners_by_harris
+
+    def order_corners(self, corners: list) -> list:
+        """
+        This function gets four corners coordinates, and orders it from left to right, top to bottom.
+        :param corners: A list contains four corners.
+        :return: [left_top, right_top, left_bottom, right_bottom]
+        """
+        self.debug.info("order_corners(): Function started.")
+        corners.sort(key=lambda corner: corner[0] + corner[1])
+        sorted_coordinates_by_location = [corners[0], corners[2],
+                                          corners[1], corners[3]]
+        self.debug.info("order_corners(): Function ended.")
+        return sorted_coordinates_by_location
+
+    def apply_warp_transformation(self, image: numpy.ndarray, corners: list, new_image_size: tuple = (1000, 500)) \
+            -> numpy.ndarray:
+        """
+        This function applies Warp transformation to get right perspective for the object that is
+        described with its corners.
+        :param image: A image to apply transformation.
+        :param corners: A list of corners of the object to get from the image.
+        :param new_image_size: A tuple of size data for the new image.
+        :return: A image as numpy.ndarray
+        """
+        self.debug.info("apply_warp_transformation(): Function started.")
+        top_left_corner_new = (0, 0)
+        top_right_corner_new = (new_image_size[0] - 1, 0)
+        bottom_left_corner_new = (0, new_image_size[1] - 1)
+        bottom_right_corner_new = (new_image_size[0] - 1, new_image_size[1] - 1)
+        new_corners = numpy.float32([top_left_corner_new, top_right_corner_new,
+                                     bottom_left_corner_new, bottom_right_corner_new])
+        old_corners = numpy.float32(corners)
+        perspective = cv2.getPerspectiveTransform(old_corners, new_corners)
+        resulting_object_image = cv2.warpPerspective(self.image_uploaded, perspective, new_image_size,
+                                                     flags=cv2.INTER_LINEAR)
+        self.debug.info("apply_warp_transformation(): Function ended.")
+        return resulting_object_image
 
 # Main function
 if __name__ == "__main__":
     image_to_test = cv2.imread("reference.jpg")
+
     detector = RectangularDetection(image_to_test)
     detector.run()
