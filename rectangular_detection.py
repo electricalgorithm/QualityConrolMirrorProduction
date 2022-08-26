@@ -8,7 +8,6 @@ class Debug:
     This class implements a debugging feature to create log files and
     output informative lines into the console.
     """
-
     def __init__(self, file_location: str):
         try:
             self.log_file = open(file_location, "a", encoding="utf-8")
@@ -501,29 +500,28 @@ class RectangularDetection:
         self.debug.info("apply_warp_transformation(): Function ended.")
         return resulting_object_image
 
-    def remove_borders(self, image_to_find: numpy.ndarray) -> numpy.ndarray:
+    def remove_borders(self, image: numpy.ndarray) -> numpy.ndarray:
         """
         This function removes the borders of the rectangular window object.
-        :param original_image:  A image to return the indices.
-        :param image_to_find: A image to remove borders.
+        :param image:  A image as numpy.ndarray
         :return: Resulting image as numpy.ndarray
         """
         self.debug.info("remove_borders(): Function started.")
 
-        height, width = image_to_find.shape
+        height, width = image.shape
         first_white_from_left = 0
         first_white_from_right = 0
         threshold_to_be_white_line = 180
 
         self.debug.info(f"Starting the remove left side. Threshold: {threshold_to_be_white_line}")
         for pixel_index_from_left in range(0, width):
-            if numpy.mean(image_to_find[:, pixel_index_from_left]) > threshold_to_be_white_line:
+            if numpy.mean(image[:, pixel_index_from_left]) > threshold_to_be_white_line:
                 first_white_from_left = pixel_index_from_left
                 break
 
         self.debug.info(f"Starting the remove right side. Threshold: {threshold_to_be_white_line}")
         for pixel_index_from_right in range(width - 1, 0, -1):
-            if numpy.mean(image_to_find[:, pixel_index_from_right]) > threshold_to_be_white_line:
+            if numpy.mean(image[:, pixel_index_from_right]) > threshold_to_be_white_line:
                 first_white_from_right = pixel_index_from_right
                 break
 
@@ -533,14 +531,14 @@ class RectangularDetection:
 
         self.debug.info(f"Starting the remove top side. Threshold: {threshold_to_be_white_lines}")
         for pixel_index_from_top in range(0, height):
-            if numpy.mean(image_to_find[pixel_index_from_top:(pixel_index_from_top + 5), :]) \
+            if numpy.mean(image[pixel_index_from_top:(pixel_index_from_top + 5), :]) \
                     > threshold_to_be_white_lines:
                 first_biggest_white_from_top = pixel_index_from_top
                 break
 
         self.debug.info(f"Starting the remove bottom side. Threshold: {threshold_to_be_white_lines}")
         for pixel_index_from_bottom in range(height - 1, 6, -1):
-            if numpy.mean(image_to_find[(pixel_index_from_bottom - 5):pixel_index_from_bottom, :]) \
+            if numpy.mean(image[(pixel_index_from_bottom - 5):pixel_index_from_bottom, :]) \
                     > threshold_to_be_white_lines:
                 first_biggest_white_from_bottom = pixel_index_from_bottom - 5
                 break
@@ -548,8 +546,8 @@ class RectangularDetection:
         self.debug.result(f"Image is cropped from {first_biggest_white_from_top} to {first_biggest_white_from_bottom}"
                           f" on vertical, and from {first_white_from_left} to {(first_white_from_right + 1)} on "
                           f"horizontal.")
-        image_cropped = image_to_find[first_biggest_white_from_top:first_biggest_white_from_bottom,
-                                      first_white_from_left:(first_white_from_right + 1)]
+        image_cropped = image[first_biggest_white_from_top:first_biggest_white_from_bottom,
+                              first_white_from_left:(first_white_from_right + 1)]
         self.debug.info("remove_borders(): Function ended.")
         return image_cropped
 
@@ -564,13 +562,3 @@ if __name__ == "__main__":
     ObjectImage = object_detector.get_result()
 
     cv2.imwrite("object_image.png", ObjectImage)
-
-    # Detect the angles of lines.
-    angles_detector = AngleDetection(ObjectImage, (15, 1))
-    angles_detector.run()
-    Angles = angles_detector.get_angles()
-
-    # Print the results.
-    for index in range(len(Angles)):
-        message = f'Cropped Image #{index} - Average Angle: {Angles[index]}°'
-        print(message)
