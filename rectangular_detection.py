@@ -9,7 +9,7 @@ class Debug:
     """
     def __init__(self, file_location: str):
         try:
-            self.log_file = open(file_location, "w", encoding="utf-8")
+            self.log_file = open(file_location, "a", encoding="utf-8")
         except FileNotFoundError:
             raise Exception("Logs file couldn't be opened.")
 
@@ -28,8 +28,8 @@ class Debug:
         :param message:
         :return: log as string
         """
-        log = f"[{self.debug_level_names[debug_level]}] {message}\n"
-        self.log_file.write(log)
+        log = f"[{self.debug_level_names[debug_level]}] {message}"
+        self.log_file.write(log + "\n")
         print(log)
         return log
 
@@ -77,6 +77,8 @@ class RectangularDetection:
         It runs the algorithm.
         :return: None
         """
+        self.is_algorithm_finished = False
+
         # Binarization
         self.end_image = self.apply_binarization(self.image_uploaded)
         self.steps.append(self.end_image)
@@ -103,7 +105,14 @@ class RectangularDetection:
         self.end_image = self.remove_borders(self.end_image)
         self.steps.append(self.end_image)
 
-        self.save_all_steps()
+        self.is_algorithm_finished = True
+
+    def get_result(self) -> numpy.ndarray:
+        """
+        Returns the object image.
+        :return: Image as numpy.ndarray.
+        """
+        return self.end_image if self.is_algorithm_finished else None
 
     def save_image(self, image: numpy.ndarray, file_location: str) -> None:
         """
@@ -274,7 +283,7 @@ class RectangularDetection:
                                      bottom_left_corner_new, bottom_right_corner_new])
         old_corners = numpy.float32(corners)
         perspective = cv2.getPerspectiveTransform(old_corners, new_corners)
-        resulting_object_image = cv2.warpPerspective(self.image_uploaded, perspective, new_image_size,
+        resulting_object_image = cv2.warpPerspective(image, perspective, new_image_size,
                                                      flags=cv2.INTER_LINEAR)
         self.debug.info("apply_warp_transformation(): Function ended.")
         return resulting_object_image
@@ -335,5 +344,11 @@ class RectangularDetection:
 if __name__ == "__main__":
     image_to_test = cv2.imread("reference.jpg")
 
+    # Detect and save each step into different PNG.
     detector = RectangularDetection(image_to_test)
     detector.run()
+    # detector.save_all_steps()
+
+    # Get the resulting image.
+    object_detected = detector.get_result()
+    cv2.imwrite("reference_result.png", object_detected)
