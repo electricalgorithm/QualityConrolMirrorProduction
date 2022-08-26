@@ -95,6 +95,14 @@ class RectangularDetection:
         self.end_image = self.apply_warp_transformation(self.image_uploaded, self.corners, (800, 600))
         self.steps.append(self.end_image)
 
+        # Binarization
+        self.end_image = self.apply_binarization(self.end_image)
+        self.steps.append(self.end_image)
+
+        # Remove borders
+        self.end_image = self.remove_borders(self.end_image)
+        self.steps.append(self.end_image)
+
         self.save_all_steps()
 
     def save_image(self, image: numpy.ndarray, file_location: str) -> None:
@@ -270,6 +278,58 @@ class RectangularDetection:
                                                      flags=cv2.INTER_LINEAR)
         self.debug.info("apply_warp_transformation(): Function ended.")
         return resulting_object_image
+
+    def remove_borders(self, image: numpy.ndarray) -> numpy.ndarray:
+        """
+        This function removes the borders of the rectangular window object.
+        :param image: A image to remove borders.
+        :return: Resulting image as numpy.ndarray
+        """
+        self.debug.info("remove_borders(): Function started.")
+
+        height, width = image.shape
+        first_white_from_left = 0
+        first_white_from_right = 0
+        threshold_to_be_white_line = 180
+
+        self.debug.info(f"Starting the remove left side. Threshold: {threshold_to_be_white_line}")
+        for pixel_index_from_left in range(0, width):
+            if numpy.mean(image[:, pixel_index_from_left]) > threshold_to_be_white_line:
+                first_white_from_left = pixel_index_from_left
+                break
+
+        self.debug.info(f"Starting the remove right side. Threshold: {threshold_to_be_white_line}")
+        for pixel_index_from_right in range(width - 1, 0, -1):
+            if numpy.mean(image[:, pixel_index_from_right]) > threshold_to_be_white_line:
+                first_white_from_right = pixel_index_from_right
+                break
+
+        first_biggest_white_from_top = 0
+        first_biggest_white_from_bottom = 0
+        threshold_to_be_white_lines = 240
+
+        self.debug.info(f"Starting the remove top side. Threshold: {threshold_to_be_white_lines}")
+        for pixel_index_from_top in range(0, height):
+            if numpy.mean(image[pixel_index_from_top:(pixel_index_from_top + 5), :]) \
+                    > threshold_to_be_white_lines:
+                first_biggest_white_from_top = pixel_index_from_top
+                break
+
+        self.debug.info(f"Starting the remove bottom side. Threshold: {threshold_to_be_white_lines}")
+        for pixel_index_from_bottom in range(height - 1, 6, -1):
+            if numpy.mean(image[(pixel_index_from_bottom - 5):pixel_index_from_bottom, :]) \
+                    > threshold_to_be_white_lines:
+                first_biggest_white_from_bottom = pixel_index_from_bottom - 5
+                break
+
+        self.debug.result(f"Image is cropped from {first_biggest_white_from_top} to {first_biggest_white_from_bottom}"
+                          f" on vertical, and from {first_white_from_left} to {(first_white_from_right + 1)} on "
+                          f"horizontal.")
+        image_cropped = image[first_biggest_white_from_top:first_biggest_white_from_bottom,
+                              first_white_from_left:(first_white_from_right + 1)]
+        self.debug.info("remove_borders(): Function ended.")
+        return image_cropped
+
 
 # Main function
 if __name__ == "__main__":
