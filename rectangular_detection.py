@@ -96,9 +96,20 @@ class AngleDetection:
             # Use Canny's Algorithm to find edges.
             cannied_image = self.apply_canny_detection(self.mini_images[_index])
             self.debug.info(f'Canny detection applied to the {_index}th mini-image.')
+            # cv2.imwrite(f"cannied_image_{_index}.png", cannied_image)
+
+            # Crop the sub-image to remove outer lines.
+            x_size, y_size = cannied_image.shape
+            x_size_crop_delete = int(x_size * 0.1)
+            y_size_crop_delete = int(y_size * 0.1)
+            cropped_image = cannied_image[x_size_crop_delete:-x_size_crop_delete,
+                                          y_size_crop_delete:-y_size_crop_delete]
+            # cv2.imwrite(f"cropped_image_{_index}.png", cropped_image)
 
             # Find the average angle with Hough transformation method.
-            current_angle = self.apply_adaptive_hough_lines(self.mini_images[_index], cannied_image)
+            rgb_mini_image = cv2.cvtColor(cropped_image, cv2.COLOR_GRAY2RGB)
+            current_angle = self.apply_adaptive_hough_lines(rgb_mini_image, cropped_image)
+            # cv2.imwrite(f"hough_line_{_index}.png", rgb_mini_image)
             self.debug.info(f'Hough transformation applied to the {_index}th mini-image.')
             self.debug.result(f'Average angle for the {_index}th mini-image is {current_angle}.')
             self.angles.append(current_angle)
@@ -561,4 +572,7 @@ if __name__ == "__main__":
     object_detector.run()
     ObjectImage = object_detector.get_result()
 
-    cv2.imwrite("object_image.png", ObjectImage)
+    # Detect the angles in the ObjectImage.
+    angle_detector = AngleDetection(ObjectImage, (15, 2))
+    angle_detector.run()
+    print(f"Results: {angle_detector.get_angles()}")
