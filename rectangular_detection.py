@@ -300,6 +300,8 @@ class RectangularDetection:
         It runs the algorithm.
         :return: None
         """
+        self.is_algorithm_finished = False
+
         # Binarization
         self.end_image = self.apply_binarization(self.image_uploaded)
         self.steps.append(self.end_image)
