@@ -89,14 +89,11 @@ class AngleDetection:
 
         # Travel all the images.
         for _index in range(0, len(self.mini_images)):
-            # Make the image binary with Otsu's Method.
-            # binary_image = self.apply_binarization(self.mini_images[_index])
-            # self.debug.info("Binarization applied to the {_index}th mini-image.")
-
             # Use Canny's Algorithm to find edges.
             cannied_image = self.apply_canny_detection(self.mini_images[_index])
             self.debug.info(f'Canny detection applied to the {_index}th mini-image.')
-            # cv2.imwrite(f"cannied_image_{_index}.png", cannied_image)
+            if DEBUG_MODE:
+                cv2.imwrite(f"cannied_image_{_index}.png", cannied_image)
 
             # Crop the sub-image to remove outer lines.
             x_size, y_size = cannied_image.shape
@@ -104,12 +101,14 @@ class AngleDetection:
             y_size_crop_delete = int(y_size * 0.1)
             cropped_image = cannied_image[x_size_crop_delete:-x_size_crop_delete,
                                           y_size_crop_delete:-y_size_crop_delete]
-            # cv2.imwrite(f"cropped_image_{_index}.png", cropped_image)
+            if DEBUG_MODE:
+                cv2.imwrite(f"cropped_image_{_index}.png", cropped_image)
 
             # Find the average angle with Hough transformation method.
             rgb_mini_image = cv2.cvtColor(cropped_image, cv2.COLOR_GRAY2RGB)
             current_angle = self.apply_adaptive_hough_lines(rgb_mini_image, cropped_image)
-            # cv2.imwrite(f"hough_line_{_index}.png", rgb_mini_image)
+            if DEBUG_MODE:
+                cv2.imwrite(f"hough_line_{_index}.png", rgb_mini_image)
             self.debug.info(f'Hough transformation applied to the {_index}th mini-image.')
             self.debug.result(f'Average angle for the {_index}th mini-image is {current_angle}.')
             self.angles.append(current_angle)
@@ -567,6 +566,9 @@ class RectangularDetection:
 
 # Main function
 if __name__ == "__main__":
+    global DEBUG_MODE
+    DEBUG_MODE = True
+
     Image = cv2.imread("reference.jpg")
 
     # Detect the window.
