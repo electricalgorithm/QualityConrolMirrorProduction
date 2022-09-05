@@ -1,6 +1,7 @@
 import cv2
 import numpy
 import math
+from datetime import date
 
 
 class Debug:
@@ -14,6 +15,8 @@ class Debug:
         except FileNotFoundError:
             raise Exception("Logs file couldn't be opened.")
 
+        self._add_initial_header_()
+
         # Create a debug level.
         class DebugLevels:
             INFO = 0
@@ -22,6 +25,14 @@ class Debug:
 
         self.debug_level = DebugLevels()
         self.debug_level_names = ["INFO", "ERROR", "RESULT"]
+
+    def _add_initial_header_(self):
+        # Add date into log file.
+        today = date.today()
+        date_string = today.strftime("%d/%m/%Y")
+        self.log_file.write("\n\n=====================================\n")
+        self.log_file.write(f"Algorithm started on {date_string}.\n")
+        self.log_file.write("=====================================\n")
 
     def _save_and_return_message_(self, debug_level: int, message: str) -> str:
         """
@@ -329,7 +340,8 @@ class RectangularDetection:
 
         # Finish the algorithm
         self.is_algorithm_finished = True
-        self.save_all_steps()
+        if DEBUG_MODE:
+            self.save_all_steps()
 
     def get_result(self) -> numpy.ndarray:
         """
@@ -567,9 +579,9 @@ class RectangularDetection:
 # Main function
 if __name__ == "__main__":
     global DEBUG_MODE
-    DEBUG_MODE = True
+    DEBUG_MODE = False
 
-    Image = cv2.imread("reference.jpg")
+    Image = cv2.imread("tests/image_to_test.jpg")
 
     # Detect the window.
     object_detector = RectangularDetection(Image)
@@ -577,6 +589,6 @@ if __name__ == "__main__":
     ObjectImage = object_detector.get_result()
 
     # Detect the angles in the ObjectImage.
-    angle_detector = AngleDetection(ObjectImage, (15, 2))
+    angle_detector = AngleDetection(ObjectImage, (5, 2))
     angle_detector.run()
     print(f"Results: {angle_detector.get_angles()}")
