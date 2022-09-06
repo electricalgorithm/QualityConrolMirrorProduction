@@ -1,8 +1,8 @@
 import cv2
 import argparse
-from src.libs.Debug import Debug
-from src.libs.AngleDetection import AngleDetection
-from src.libs.RectangularDetection import RectangularDetection
+from libs.Debug import Debug
+from libs.AngleDetection import AngleDetection
+from libs.RectangularDetection import RectangularDetection
 
 
 def init_argument_parser():
@@ -28,15 +28,15 @@ if __name__ == "__main__":
     args = init_argument_parser()
 
     # Check the tile count.
-    if len(args["tiles"]) != 2:
+    if len(args.tiles) != 2:
         raise RuntimeError("You need to provide two integer values for tile structure.")
 
     # Create a debugger to have information messages.
-    debugger = Debug(args["log_file"], args["save_dir"])
+    debugger = Debug(args.log_file[0], args.save_dir[0])
     debugger.set_level("INFO")
 
     # Open the image with OpenCV.
-    Image = cv2.imread(args["image_location"])
+    Image = cv2.imread(args.image_location[0])
 
     # Detect the window.
     object_detector = RectangularDetection(Image, debug=debugger)
@@ -44,6 +44,6 @@ if __name__ == "__main__":
     ObjectImage = object_detector.get_result()
 
     # Detect the angles in the ObjectImage.
-    angle_detector = AngleDetection(ObjectImage, (int(args["tiles"][0]), int(args["tiles"][1])), debug=debugger)
+    angle_detector = AngleDetection(ObjectImage, (int(args.tiles[0]), int(args.tiles[1])), debug=debugger)
     angle_detector.run()
     print(f"Results: {angle_detector.get_angles()}")

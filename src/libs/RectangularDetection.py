@@ -1,6 +1,6 @@
 import cv2
 import numpy
-from src.libs.Debug import Debug
+from libs.Debug import Debug
 
 
 class RectangularDetection:
