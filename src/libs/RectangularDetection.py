@@ -65,16 +65,16 @@ class RectangularDetection:
         """
         return self.end_image if self.is_algorithm_finished else None
 
-    def save_image(self, image: numpy.ndarray, file_location: str) -> None:
+    def save_image(self, image_name, image_ndarray):
         """
-        Saves the given numpy.ndarray as a image to the file system.
-        :param image: Image as numpy.ndarray
-        :param file_location: A file location to save image as string.
-        :return: None
+        This function saves the given ndarray as an image.
+        :param image_name:
+        :param image_ndarray:
+        :return:
         """
         self.debug.info("save_image(): Function started.")
-        cv2.imwrite(file_location, image)
-        self.debug.result(f"Image is saved to {file_location}.")
+        if self.debug.current_debug_level >= self.debug.debug_levels.INFO:
+            cv2.imwrite(f"{self.debug.image_save_directory}/{image_name}.png", image_ndarray)
         self.debug.info("save_image(): Function ended.")
 
     def save_all_steps(self) -> None:
@@ -84,7 +84,7 @@ class RectangularDetection:
         """
         step_index = 1
         for step in self.steps:
-            self.save_image(step, f"step-{step_index}.png")
+            self.save_image(f"RD-{step_index}", step)
             step_index += 1
 
     def apply_binarization(self, image: numpy.ndarray) -> numpy.ndarray:
