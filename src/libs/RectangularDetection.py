@@ -20,6 +20,11 @@ class RectangularDetection:
         self.end_image = None
         self.is_algorithm_finished = False
 
+    """
+    #################################################
+                INTERFACE FOR END-USERS
+    #################################################
+    """
     def run(self) -> None:
         """
         It runs the algorithm.
@@ -65,6 +70,11 @@ class RectangularDetection:
         """
         return self.end_image if self.is_algorithm_finished else None
 
+    """
+    #################################################
+                ADDITIONAL FUNCTIONS
+    #################################################
+    """
     def save_image(self, image_name, image_ndarray):
         """
         This function saves the given ndarray as an image.
@@ -87,6 +97,31 @@ class RectangularDetection:
             self.save_image(f"RD-{step_index}", step)
             step_index += 1
 
+    # @TODO: Implement this method and return the average corners.
+    def validate_corners(self, corners_by_harris: list, corners_by_contour: list) -> list:
+        self.debug.info("validate_corners(): Function started.")
+        self.debug.error("NOT IMPLEMENTED!")
+        self.debug.info("validate_corners(): Function ended.")
+        return corners_by_harris
+
+    def order_corners(self, corners: list) -> list:
+        """
+        This function gets four corners coordinates, and orders it from left to right, top to bottom.
+        :param corners: A list contains four corners.
+        :return: [left_top, right_top, left_bottom, right_bottom]
+        """
+        self.debug.info("order_corners(): Function started.")
+        corners.sort(key=lambda corner: corner[0] + corner[1])
+        sorted_coordinates_by_location = [corners[0], corners[2],
+                                          corners[1], corners[3]]
+        self.debug.info("order_corners(): Function ended.")
+        return sorted_coordinates_by_location
+
+    """
+    #################################################
+                IMAGE PROCESSING METHODS
+    #################################################
+    """
     def apply_binarization(self, image: numpy.ndarray) -> numpy.ndarray:
         """
         The function gets an image input, and apply Otsu's Method to find its binary representation.
@@ -194,26 +229,6 @@ class RectangularDetection:
 
         self.debug.info("apply_harris_corner_detection(): Function ended.")
         return minimum_corners
-
-    # @TODO: Implement this method and return the average corners.
-    def validate_corners(self, corners_by_harris: list, corners_by_contour: list) -> list:
-        self.debug.info("validate_corners(): Function started.")
-        self.debug.error("NOT IMPLEMENTED!")
-        self.debug.info("validate_corners(): Function ended.")
-        return corners_by_harris
-
-    def order_corners(self, corners: list) -> list:
-        """
-        This function gets four corners coordinates, and orders it from left to right, top to bottom.
-        :param corners: A list contains four corners.
-        :return: [left_top, right_top, left_bottom, right_bottom]
-        """
-        self.debug.info("order_corners(): Function started.")
-        corners.sort(key=lambda corner: corner[0] + corner[1])
-        sorted_coordinates_by_location = [corners[0], corners[2],
-                                          corners[1], corners[3]]
-        self.debug.info("order_corners(): Function ended.")
-        return sorted_coordinates_by_location
 
     def apply_warp_transformation(self, image: numpy.ndarray, corners: list, new_image_size: tuple = (1000, 500)) \
             -> numpy.ndarray:

@@ -26,6 +26,11 @@ class AngleDetection:
         self.tiles_wanted = tiles
         self.is_algorithm_finished = False
 
+    """
+    #################################################
+                INTERFACE FOR END-USERS
+    #################################################
+    """
     def run(self) -> None:
         """
         The function runs the algorithm and returns the resulting angles.
@@ -64,11 +69,6 @@ class AngleDetection:
         # Finish the algorithm.
         self.is_algorithm_finished = True
 
-    """
-    #################################################
-                INTERFACE FOR END-USERS
-    #################################################
-    """
     def get_combined_image(self) -> numpy.ndarray:
         """
         Returns the combined image.
