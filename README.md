@@ -1,8 +1,10 @@
 # Image Processing Method of Quality Control in Mirror Production
 ![](https://img.shields.io/github/license/electricalgorithm/RectangularObjectDetector?style=flat-square) ![](https://img.shields.io/github/stars/electricalgorithm/RectangularObjectDetector?style=flat-square)
 
+![Algorithm in detail](./assets/algorithm.png)
 
 ## Description
+
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque tempus elit vitae rhoncus 
 gravida. Donec pellentesque ipsum nibh, lobortis tristique leo fermentum vitae. Pellentesque 
 a nisl scelerisque, consequat risus posuere, vulputate elit. 
