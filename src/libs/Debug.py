@@ -6,9 +6,8 @@ class Debug:
     This class implements a debugging feature to create log files and
     output informative lines into the console.
     """
-    def __init__(self,
-                 log_file_location: str,
-                 image_save_location: str):
+
+    def __init__(self, log_file_location: str, image_save_location: str):
         try:
             self.log_file = open(log_file_location, "a", encoding="utf-8")
         except FileNotFoundError:

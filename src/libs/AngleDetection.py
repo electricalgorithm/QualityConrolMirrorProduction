@@ -9,14 +9,13 @@ class AngleDetection:
     This class helps you to find angles in an image.
     """
 
-    def __init__(self, image_file: numpy.ndarray,
-                 tiles: tuple,
-                 debug: Debug):
+    def __init__(self, image_file: numpy.ndarray, tiles: tuple, debug: Debug):
 
         self.debug = debug
         # Check the tiles parameter.
         if tiles is None:
-            self.debug.error("You must provide tiles size for griding the image.")
+            self.debug.error(
+                "You must provide tiles size for griding the image.")
 
         # Properties to save things later.
         self.image_uploaded = image_file
@@ -31,39 +30,49 @@ class AngleDetection:
                 INTERFACE FOR END-USERS
     #################################################
     """
+
     def run(self) -> None:
         """
         The function runs the algorithm and returns the resulting angles.
         :return: Angles
         """
         # Divide the images.
-        self.mini_images = \
-            self.divide_the_image(self.image_uploaded,
-                                  tiles=(self.tiles_wanted if self.tiles_wanted is not None else (5, 2)))
+        self.mini_images = self.divide_the_image(
+            self.image_uploaded,
+            tiles=(self.tiles_wanted if self.tiles_wanted is not None else (5, 2)),
+        )
 
         # Travel all the images.
         for _index in range(0, len(self.mini_images)):
             # Use Canny Algorithm to find edges.
             canny_image = self.apply_canny_detection(self.mini_images[_index])
-            self.debug.info(f'Canny detection applied to the {_index}th mini-image.')
+            self.debug.info(
+                f"Canny detection applied to the {_index}th mini-image.")
             self.save_image(f"AD-CannyImage-{_index}", canny_image)
 
             # Crop the sub-image to remove outer lines.
             cropped_image = self.crop_image_by_percentage(canny_image, 10)
-            self.debug.info(f'Cropping the mini-image {_index} had completed.')
-            self.save_image(f'AD-CropImage-{_index}', cropped_image)
+            self.debug.info(f"Cropping the mini-image {_index} had completed.")
+            self.save_image(f"AD-CropImage-{_index}", cropped_image)
 
             # Create a RGB image to draw red Hough Lines onto.
-            mini_image_with_color = cv2.cvtColor(cropped_image, cv2.COLOR_GRAY2RGB)
+            mini_image_with_color = cv2.cvtColor(
+                cropped_image, cv2.COLOR_GRAY2RGB)
             self.rgb_mini_images.append(mini_image_with_color)
 
             # Find the average angle with Hough transformation method.
-            current_angle = self.apply_adaptive_hough_lines(mini_image_with_color, cropped_image)
-            self.debug.info(f'Hough transformation applied to the {_index}th mini-image.')
-            self.save_image(f'AD-HoughLine-{_index}', mini_image_with_color)
+            current_angle = self.apply_adaptive_hough_lines(
+                mini_image_with_color, cropped_image
+            )
+            self.debug.info(
+                f"Hough transformation applied to the {_index}th mini-image."
+            )
+            self.save_image(f"AD-HoughLine-{_index}", mini_image_with_color)
 
             # Save the result into logs and angles array.
-            self.debug.result(f'Average angle for the {_index}th mini-image is {current_angle}.')
+            self.debug.result(
+                f"Average angle for the {_index}th mini-image is {current_angle}."
+            )
             self.angles.append(current_angle)
 
         # Finish the algorithm.
@@ -88,8 +97,11 @@ class AngleDetection:
                 ADDITIONAL FUNCTIONS
     #################################################
     """
+
     @staticmethod
-    def crop_image_by_percentage(image: numpy.ndarray, percentage: int) -> numpy.ndarray:
+    def crop_image_by_percentage(
+        image: numpy.ndarray, percentage: int
+    ) -> numpy.ndarray:
         """
         Function crops the given image from each border and returns it.
         :param image: The image that ill be cropped.
@@ -99,8 +111,10 @@ class AngleDetection:
         x_size, y_size = image.shape
         x_size_crop_delete = int(x_size * percentage / 100)
         y_size_crop_delete = int(y_size * percentage / 100)
-        return image[x_size_crop_delete:-x_size_crop_delete,
-                     y_size_crop_delete:-y_size_crop_delete]
+        return image[
+            x_size_crop_delete:-x_size_crop_delete,
+            y_size_crop_delete:-y_size_crop_delete,
+        ]
 
     def create_combine_image(self):
         """
@@ -123,10 +137,13 @@ class AngleDetection:
             image_to_order_list.append(image_object)
 
         # Combine the image.
-        image_ordered_list = numpy.reshape(image_to_order_list, self.tiles_wanted)
+        image_ordered_list = numpy.reshape(
+            image_to_order_list, self.tiles_wanted)
         col_concat = []
         for list_images_in_a_row in image_ordered_list:
-            row_images = [element_per_row.get_image() for element_per_row in list_images_in_a_row]
+            row_images = [
+                element_per_row.get_image() for element_per_row in list_images_in_a_row
+            ]
             row_concat = cv2.hconcat(row_images)
             col_concat.append(row_concat)
         return cv2.vconcat(col_concat)
@@ -139,9 +156,13 @@ class AngleDetection:
         :return:
         """
         if self.debug.current_debug_level >= self.debug.debug_levels.INFO:
-            cv2.imwrite(f"{self.debug.image_save_directory}/{image_name}.png", image_ndarray)
+            cv2.imwrite(
+                f"{self.debug.image_save_directory}/{image_name}.png", image_ndarray
+            )
 
-    def divide_the_image(self, image_to_divide: numpy.ndarray, tiles: tuple = (5, 2)) -> list:
+    def divide_the_image(
+        self, image_to_divide: numpy.ndarray, tiles: tuple = (5, 2)
+    ) -> list:
         """
         This function breaks the image into row and column
         count given in the tiles parameter.
@@ -158,11 +179,14 @@ class AngleDetection:
         for start_index_col in range(0, image_to_divide.shape[1], cols_size):
             for start_index_row in range(0, image_to_divide.shape[0], rows_size):
                 cropped_part = image_to_divide[
-                               start_index_row:(start_index_row + rows_size),
-                               start_index_col:(start_index_col + cols_size)
-                               ]
+                    start_index_row: (start_index_row + rows_size),
+                    start_index_col: (start_index_col + cols_size),
+                ]
                 # Ignore any small parts which is redundant.
-                if cropped_part.shape[0] == rows_size and cropped_part.shape[1] == cols_size:
+                if (
+                    cropped_part.shape[0] == rows_size
+                    and cropped_part.shape[1] == cols_size
+                ):
                     mini_images.append(cropped_part)
 
         self.debug.info("Image division is completed.")
@@ -174,7 +198,10 @@ class AngleDetection:
                 IMAGE PROCESSING METHODS
     #################################################
     """
-    def apply_adaptive_hough_lines(self, image_to_put: numpy.ndarray, image: numpy.ndarray) -> float:
+
+    def apply_adaptive_hough_lines(
+        self, image_to_put: numpy.ndarray, image: numpy.ndarray
+    ) -> float:
         """
         A function find Hough Lines for adaptive thresholds.
         :param image_to_put: Image to put lines as numpy.ndarray.
@@ -188,15 +215,20 @@ class AngleDetection:
 
         lines_count = 0
         while lines_count < 2:
-            current_angle, lines_count = self._apply_hough_lines_(image_to_put, image, threshold=int(threshold_to_test))
+            current_angle, lines_count = self._apply_hough_lines_(
+                image_to_put, image, threshold=int(threshold_to_test)
+            )
             threshold_to_test *= threshold_divider_constant
 
             if threshold_to_test <= 0:
-                self.debug.error("The Image is not proper for finding its lines.")
+                self.debug.error(
+                    "The Image is not proper for finding its lines.")
         self.debug.info("apply_adaptive_hough_lines(): Function ended.")
         return current_angle
 
-    def _apply_hough_lines_(self, image_to_put: numpy.ndarray, image: numpy.ndarray, threshold=35) -> list:
+    def _apply_hough_lines_(
+        self, image_to_put: numpy.ndarray, image: numpy.ndarray, threshold=35
+    ) -> list:
         """
         This method firstly finds the border lines using Hough's transformation method with experimentally
         predetermined threshold. Afterwards, it marks the original image with that border line.
@@ -235,9 +267,11 @@ class AngleDetection:
                 else:
                     new_theta = theta
 
-                self.debug.info(f'{i}: rho: {rho}\t'
-                                f'theta: {int(math.degrees(theta))}\t'
-                                f'new_theta: {int(math.degrees(new_theta))}')
+                self.debug.info(
+                    f"{i}: rho: {rho}\t"
+                    f"theta: {int(math.degrees(theta))}\t"
+                    f"new_theta: {int(math.degrees(new_theta))}"
+                )
                 sum_of_all_theta += math.degrees(new_theta)
 
             # Find the average angle.
@@ -260,7 +294,9 @@ class AngleDetection:
         self.debug.info("apply_hough_lines(): Function ended.")
         return [angle_to_return, lines_count]
 
-    def apply_canny_detection(self, image: numpy.ndarray, min_threshold=100, max_threshold=250) -> numpy.ndarray:
+    def apply_canny_detection(
+        self, image: numpy.ndarray, min_threshold=100, max_threshold=250
+    ) -> numpy.ndarray:
         """
         This function applies the Canny algorithm to distinguish a object border.
         :param image: A binary image.
@@ -282,6 +318,8 @@ class AngleDetection:
         """
         self.debug.info("apply_binarization(): Function started.")
         grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        _, binary_image = cv2.threshold(grayscale_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        _, binary_image = cv2.threshold(
+            grayscale_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        )
         binary_image = cv2.bitwise_not(binary_image)
         return binary_image
