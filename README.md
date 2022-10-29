@@ -5,21 +5,26 @@
 
 ## Description
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque tempus elit vitae rhoncus 
-gravida. Donec pellentesque ipsum nibh, lobortis tristique leo fermentum vitae. Pellentesque 
-a nisl scelerisque, consequat risus posuere, vulputate elit. 
+This script introduces an image processing algorithm which detects reflection lines on 
+a mirror to find structural faults (such as cambering, deorientiaton, etc.). The algorithm
+can use its input stream from only one camera, and the camera's positioning is not that important.
 
-Duis in imperdiet mauris. Sed iaculis diam dui, vel blandit justo feugiat quis. Aliquam ex 
-nulla, auctor sit amet tincidunt quis, vestibulum in ex. Aenean tincidunt pulvinar lectus, 
-sit amet aliquam ante luctus vitae. Mauris pretium blandit ante in ultricies. 
+The algorithm relies on reflecting uniformed sloped lines into a mirror which will be
+tested. Due to the camera and environment settings, we have set the default "line detection"
+amount for calculating average slope as two. For desire of more accurate average angles,
+please update the minimum line detection amount to an increased number.
 
-* In auctor rhoncus elit. Curabitur id orci tempor, viverra arcu a, accumsan mauris.
-* Fusce ac turpis in erat volutpat mollis. Nam tempus mattis euismod.
-* Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. 
+* **Tile structure analysis**: It allows you to define enclosed areas to find average
+angles for each-area individually.
+* **Debug and log support**: Within the debug feature, you can see the chances made in each
+step of the algorithm both as text, and images.
+* **High FPS**: The algorithm operates on 30-40FPS on average. Thanks to its easy-to-understand
+mechanism, the FPS can be increased easily with small adjustments. 
 
 ## Usage
 
 
+[TODO: Detailed usage]
 Nam malesuada egestas eros, vehicula varius lorem auctor eu. Nunc dolor nulla, elementum 
 quis sem quis, ultricies elementum nibh. Donec auctor commodo odio lacinia egestas. Duis
 a lacinia leo. Curabitur sem risus, sollicitudin quis lacus et, varius accumsan urna.  
