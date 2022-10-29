@@ -9,9 +9,7 @@ class RectangularDetection:
     object in a photo and return its top view,
     """
 
-    def __init__(self,
-                 image_file: numpy.ndarray,
-                 debug: Debug):
+    def __init__(self, image_file: numpy.ndarray, debug: Debug):
         self.image_uploaded = image_file
         self.debug = debug
 
@@ -25,6 +23,7 @@ class RectangularDetection:
                 INTERFACE FOR END-USERS
     #################################################
     """
+
     def run(self) -> None:
         """
         It runs the algorithm.
@@ -43,11 +42,14 @@ class RectangularDetection:
         # Corner Finding
         corners_by_contour = self.apply_contour_find(self.end_image)
         corners_by_harris = self.apply_harris_corner_detection(self.end_image)
-        self.corners = self.validate_corners(corners_by_harris, corners_by_contour)
+        self.corners = self.validate_corners(
+            corners_by_harris, corners_by_contour)
         self.corners = self.order_corners(self.corners)
 
         # Transformation
-        self.end_image = self.apply_warp_transformation(self.image_uploaded, self.corners, (800, 600))
+        self.end_image = self.apply_warp_transformation(
+            self.image_uploaded, self.corners, (800, 600)
+        )
         self.steps.append(self.end_image)
 
         # Binarization
@@ -75,6 +77,7 @@ class RectangularDetection:
                 ADDITIONAL FUNCTIONS
     #################################################
     """
+
     def save_image(self, image_name, image_ndarray):
         """
         This function saves the given ndarray as an image.
@@ -84,7 +87,9 @@ class RectangularDetection:
         """
         self.debug.info("save_image(): Function started.")
         if self.debug.current_debug_level >= self.debug.debug_levels.INFO:
-            cv2.imwrite(f"{self.debug.image_save_directory}/{image_name}.png", image_ndarray)
+            cv2.imwrite(
+                f"{self.debug.image_save_directory}/{image_name}.png", image_ndarray
+            )
         self.debug.info("save_image(): Function ended.")
 
     def save_all_steps(self) -> None:
@@ -98,7 +103,9 @@ class RectangularDetection:
             step_index += 1
 
     # @TODO: Implement this method and return the average corners.
-    def validate_corners(self, corners_by_harris: list, corners_by_contour: list) -> list:
+    def validate_corners(
+        self, corners_by_harris: list, corners_by_contour: list
+    ) -> list:
         self.debug.info("validate_corners(): Function started.")
         self.debug.error("NOT IMPLEMENTED!")
         self.debug.info("validate_corners(): Function ended.")
@@ -112,8 +119,12 @@ class RectangularDetection:
         """
         self.debug.info("order_corners(): Function started.")
         corners.sort(key=lambda corner: corner[0] + corner[1])
-        sorted_coordinates_by_location = [corners[0], corners[2],
-                                          corners[1], corners[3]]
+        sorted_coordinates_by_location = [
+            corners[0],
+            corners[2],
+            corners[1],
+            corners[3],
+        ]
         self.debug.info("order_corners(): Function ended.")
         return sorted_coordinates_by_location
 
@@ -122,6 +133,7 @@ class RectangularDetection:
                 IMAGE PROCESSING METHODS
     #################################################
     """
+
     def apply_binarization(self, image: numpy.ndarray) -> numpy.ndarray:
         """
         The function gets an image input, and apply Otsu's Method to find its binary representation.
@@ -130,12 +142,16 @@ class RectangularDetection:
         """
         self.debug.info("make_binary_image(): Function started.")
         grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        _, binary_image = cv2.threshold(grayscale_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        _, binary_image = cv2.threshold(
+            grayscale_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        )
         binary_image = cv2.bitwise_not(binary_image)
         self.debug.info("make_binary_image(): Function ended.")
         return binary_image
 
-    def apply_morphological_operations(self, image: numpy.ndarray, kernel_size: int = 25):
+    def apply_morphological_operations(
+        self, image: numpy.ndarray, kernel_size: int = 25
+    ):
         """
         The function applies closing into the image with very-big kernel sizes.
         :param image: Binary image to perform method.
@@ -143,15 +159,19 @@ class RectangularDetection:
         :return: A binary image as numpy.ndarray.
         """
         self.debug.info("apply_morphological_operations(): Function started.")
-        element = cv2.getStructuringElement(cv2.MORPH_RECT,
-                                            (2 * kernel_size + 1, 2 * kernel_size + 1),
-                                            (kernel_size, kernel_size))
+        element = cv2.getStructuringElement(
+            cv2.MORPH_RECT,
+            (2 * kernel_size + 1, 2 * kernel_size + 1),
+            (kernel_size, kernel_size),
+        )
         image_to_return = cv2.erode(image, element)
         image_to_return = cv2.dilate(image_to_return, element)
         self.debug.info("apply_morphological_operations(): Function ended.")
         return image_to_return
 
-    def apply_gaussian_filter(self, image: numpy.ndarray, window_size=51, gaussian_sigma=5) -> numpy.ndarray:
+    def apply_gaussian_filter(
+        self, image: numpy.ndarray, window_size=51, gaussian_sigma=5
+    ) -> numpy.ndarray:
         """
         Function returns the cv2 Image instance that has Gaussian blur with predefined window size and gaussian
         sigma ratio.
@@ -161,7 +181,9 @@ class RectangularDetection:
         :return: The blurred image as a numpy.ndarray.
         """
         self.debug.info("blurred_image(): Function started.")
-        blurred_image = cv2.GaussianBlur(image, (window_size, window_size), gaussian_sigma)
+        blurred_image = cv2.GaussianBlur(
+            image, (window_size, window_size), gaussian_sigma
+        )
         self.debug.info("blurred_image(): Function ended.")
         return blurred_image
 
@@ -174,8 +196,11 @@ class RectangularDetection:
         """
         self.debug.info("apply_contour_find(): Function started.")
         _, thresh = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY_INV)
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        self.debug.info(f"{len(contours)} counters found. Selecting the biggest one.")
+        contours, _ = cv2.findContours(
+            thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
+        self.debug.info(
+            f"{len(contours)} counters found. Selecting the biggest one.")
 
         contour_wanted = contours[0]
         for contour in contours:
@@ -200,14 +225,18 @@ class RectangularDetection:
         corners = []
 
         dst = cv2.cornerHarris(image, 10, 7, 0.04)
-        self.debug.info("Corner Harris method is applied, and corners are detected.")
+        self.debug.info(
+            "Corner Harris method is applied, and corners are detected.")
         thresh = 0.25 * dst.max()
-        self.debug.info(f"Threshold for corner extraction is {thresh}. Selection is starting.")
+        self.debug.info(
+            f"Threshold for corner extraction is {thresh}. Selection is starting."
+        )
         for j in range(0, dst.shape[0]):
             for i in range(0, dst.shape[1]):
                 if dst[j, i] > thresh:
                     corners.append((i, j))
-                    self.debug.result(f"Corner is found and added to list: ({i}, {j})")
+                    self.debug.result(
+                        f"Corner is found and added to list: ({i}, {j})")
 
         self.debug.info("Algorithm started to delete nearby corners.")
         minimum_corners = []
@@ -230,8 +259,9 @@ class RectangularDetection:
         self.debug.info("apply_harris_corner_detection(): Function ended.")
         return minimum_corners
 
-    def apply_warp_transformation(self, image: numpy.ndarray, corners: list, new_image_size: tuple = (1000, 500)) \
-            -> numpy.ndarray:
+    def apply_warp_transformation(
+        self, image: numpy.ndarray, corners: list, new_image_size: tuple = (1000, 500)
+    ) -> numpy.ndarray:
         """
         This function applies Warp transformation to get right perspective for the object that is
         described with its corners.
@@ -244,13 +274,21 @@ class RectangularDetection:
         top_left_corner_new = (0, 0)
         top_right_corner_new = (new_image_size[0] - 1, 0)
         bottom_left_corner_new = (0, new_image_size[1] - 1)
-        bottom_right_corner_new = (new_image_size[0] - 1, new_image_size[1] - 1)
-        new_corners = numpy.float32([top_left_corner_new, top_right_corner_new,
-                                     bottom_left_corner_new, bottom_right_corner_new])
+        bottom_right_corner_new = (
+            new_image_size[0] - 1, new_image_size[1] - 1)
+        new_corners = numpy.float32(
+            [
+                top_left_corner_new,
+                top_right_corner_new,
+                bottom_left_corner_new,
+                bottom_right_corner_new,
+            ]
+        )
         old_corners = numpy.float32(corners)
         perspective = cv2.getPerspectiveTransform(old_corners, new_corners)
-        resulting_object_image = cv2.warpPerspective(image, perspective, new_image_size,
-                                                     flags=cv2.INTER_LINEAR)
+        resulting_object_image = cv2.warpPerspective(
+            image, perspective, new_image_size, flags=cv2.INTER_LINEAR
+        )
         self.debug.info("apply_warp_transformation(): Function ended.")
         return resulting_object_image
 
@@ -267,15 +305,22 @@ class RectangularDetection:
         first_white_from_right = 0
         threshold_to_be_white_line = 180
 
-        self.debug.info(f"Starting the remove left side. Threshold: {threshold_to_be_white_line}")
+        self.debug.info(
+            f"Starting the remove left side. Threshold: {threshold_to_be_white_line}"
+        )
         for pixel_index_from_left in range(0, width):
             if numpy.mean(image[:, pixel_index_from_left]) > threshold_to_be_white_line:
                 first_white_from_left = pixel_index_from_left
                 break
 
-        self.debug.info(f"Starting the remove right side. Threshold: {threshold_to_be_white_line}")
+        self.debug.info(
+            f"Starting the remove right side. Threshold: {threshold_to_be_white_line}"
+        )
         for pixel_index_from_right in range(width - 1, 0, -1):
-            if numpy.mean(image[:, pixel_index_from_right]) > threshold_to_be_white_line:
+            if (
+                numpy.mean(image[:, pixel_index_from_right])
+                > threshold_to_be_white_line
+            ):
                 first_white_from_right = pixel_index_from_right
                 break
 
@@ -283,24 +328,40 @@ class RectangularDetection:
         first_biggest_white_from_bottom = 0
         threshold_to_be_white_lines = 240
 
-        self.debug.info(f"Starting the remove top side. Threshold: {threshold_to_be_white_lines}")
+        self.debug.info(
+            f"Starting the remove top side. Threshold: {threshold_to_be_white_lines}"
+        )
         for pixel_index_from_top in range(0, height):
-            if numpy.mean(image[pixel_index_from_top:(pixel_index_from_top + 5), :]) \
-                    > threshold_to_be_white_lines:
+            if (
+                numpy.mean(image[pixel_index_from_top: (
+                    pixel_index_from_top + 5), :])
+                > threshold_to_be_white_lines
+            ):
                 first_biggest_white_from_top = pixel_index_from_top
                 break
 
-        self.debug.info(f"Starting the remove bottom side. Threshold: {threshold_to_be_white_lines}")
+        self.debug.info(
+            f"Starting the remove bottom side. Threshold: {threshold_to_be_white_lines}"
+        )
         for pixel_index_from_bottom in range(height - 1, 6, -1):
-            if numpy.mean(image[(pixel_index_from_bottom - 5):pixel_index_from_bottom, :]) \
-                    > threshold_to_be_white_lines:
+            if (
+                numpy.mean(
+                    image[(pixel_index_from_bottom - 5)
+                           : pixel_index_from_bottom, :]
+                )
+                > threshold_to_be_white_lines
+            ):
                 first_biggest_white_from_bottom = pixel_index_from_bottom - 5
                 break
 
-        self.debug.result(f"Image is cropped from {first_biggest_white_from_top} to {first_biggest_white_from_bottom}"
-                          f" on vertical, and from {first_white_from_left} to {(first_white_from_right + 1)} on "
-                          f"horizontal.")
-        image_cropped = image[first_biggest_white_from_top:first_biggest_white_from_bottom,
-                              first_white_from_left:(first_white_from_right + 1)]
+        self.debug.result(
+            f"Image is cropped from {first_biggest_white_from_top} to {first_biggest_white_from_bottom}"
+            f" on vertical, and from {first_white_from_left} to {(first_white_from_right + 1)} on "
+            f"horizontal."
+        )
+        image_cropped = image[
+            first_biggest_white_from_top:first_biggest_white_from_bottom,
+            first_white_from_left: (first_white_from_right + 1),
+        ]
         self.debug.info("remove_borders(): Function ended.")
         return image_cropped
